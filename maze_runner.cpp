@@ -63,15 +63,8 @@ pos_t load_maze(const char *file_name)
 
 			if (maze[i][j] == 'e')
 			{
-				std::cout << "Posição i:  " << i << std::endl;
 				initial_pos.i = i;
-				std::cout << "Posição j:  " << j << std::endl;
 				initial_pos.j = j;
-			}
-			if (i == 2)
-			{
-				std::cout << "Posição j:  " << j << std::endl;
-				std::cout << "Valor:  " << maze[i][j] << std::endl;
 			}
 			// Le o valor da linha i+1,j do arquivo e salva na posição maze[i][j]
 			// Se o valor for 'e' salvar o valor em initial_pos
@@ -98,7 +91,71 @@ void print_maze()
 // Recebe como entrada a posição initial e retorna um booleando indicando se a saída foi encontrada
 bool walk(pos_t pos)
 {
+	pos_t current_pos;
+	current_pos.j = pos.j;
+	current_pos.i = pos.i;
+	int finalizado = 0;
 
+	while (finalizado < 1)
+	{
+		int i = current_pos.i;
+		int j = current_pos.j;
+		std::cout << "i j" << i << j << std::endl;
+		// std::cout << "hello" << std::endl;
+		if (j + 1 < num_cols && (maze[i][j + 1] == 'x' || maze[i][j + 1] == 's'))
+		{
+			std::cout << "j+ " << maze[i][j + 1] << std::endl;
+			pos_t valid_pos;
+			valid_pos.i = i;
+			valid_pos.j = j + 1;
+			maze[i][j + 1] == '.';
+			valid_positions.push(valid_pos);
+		}
+		std::cout << "Hello" << std::endl;
+		if (j - 1 > -1 && (maze[i][j - 1] == 'x' || maze[i][j - 1] == 's'))
+		{
+			std::cout << "j- " << maze[i][j - 1] << std::endl;
+			pos_t valid_pos;
+			valid_pos.i = i;
+			valid_pos.j = j - 1;
+			maze[i][j - 1] == '.';
+			valid_positions.push(valid_pos);
+		}
+		std::cout << "Hello2" << std::endl;
+		if (i + 1 < num_rows  && (maze[i + 1][j] == 'x' || maze[i + 1][j] == 's'))
+		{
+			std::cout << "i+ " << maze[i + 1][j] << std::endl;
+			pos_t valid_pos;
+			valid_pos.i = i + 1;
+			valid_pos.j = j;
+			maze[i + 1][j] == '.';
+			valid_positions.push(valid_pos);
+		}
+		std::cout << "Hello3" << std::endl;
+		if ( i - 1 > -1 && (maze[i - 1][j] == 'x' || maze[i - 1][j] == 's'))
+		{
+			std::cout << "i-1 " << i-1 << " j " << j << " valor " << maze[i - 1][j] << std::endl;
+			pos_t valid_pos;
+			valid_pos.i = i - 1;
+			valid_pos.j = j;
+			maze[i - 1][j] == '.';
+			valid_positions.push(valid_pos);
+		}
+
+		std::cout << "Tamanho valid " << valid_positions.size() << std::endl;
+
+		current_pos.i = valid_positions.top().i;
+		current_pos.j = valid_positions.top().j;
+		if (maze[current_pos.i][current_pos.j] == 's') {
+			finalizado += 1;
+			return true;
+		} 
+		maze[current_pos.i][current_pos.j] = '.';
+		std::cout << "i j valor" << current_pos.i << current_pos.j << maze[current_pos.i][current_pos.j] << std::endl;
+
+		valid_positions.pop();
+
+	}
 	// Repita até que a saída seja encontrada ou não existam mais posições não exploradas
 	// Marcar a posição atual com o símbolo '.'
 	// Limpa a tela
@@ -129,12 +186,12 @@ bool walk(pos_t pos)
 int main(int argc, char *argv[])
 {
 	// carregar o labirinto com o nome do arquivo recebido como argumento
-	pos_t initial_pos = load_maze("../data/maze.txt");
+	pos_t initial_pos = load_maze("../data/maze3.txt");
 	std::cout << "Posição inicial i:  " << initial_pos.i << " j: " << initial_pos.j << std::endl;
 	// chamar a função de navegação
 	bool exit_found = walk(initial_pos);
 
 	// Tratar o retorno (imprimir mensagem)
-
+	print_maze();
 	return 0;
 }
