@@ -1,6 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stack>
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 // Matriz de char representnado o labirinto
 char **maze; // Voce também pode representar o labirinto como um vetor de vetores de char (vector<vector<char>>)
@@ -96,45 +99,40 @@ bool walk(pos_t pos)
 	current_pos.i = pos.i;
 	int finalizado = 0;
 
-	while (finalizado < 1)
+	while (finalizado != 1)
 	{
 		int i = current_pos.i;
 		int j = current_pos.j;
-		std::cout << "i j" << i << j << std::endl;
-		// std::cout << "hello" << std::endl;
+
 		if (j + 1 < num_cols && (maze[i][j + 1] == 'x' || maze[i][j + 1] == 's'))
 		{
-			std::cout << "j+ " << maze[i][j + 1] << std::endl;
 			pos_t valid_pos;
 			valid_pos.i = i;
 			valid_pos.j = j + 1;
 			maze[i][j + 1] == '.';
 			valid_positions.push(valid_pos);
 		}
-		std::cout << "Hello" << std::endl;
+
 		if (j - 1 > -1 && (maze[i][j - 1] == 'x' || maze[i][j - 1] == 's'))
 		{
-			std::cout << "j- " << maze[i][j - 1] << std::endl;
 			pos_t valid_pos;
 			valid_pos.i = i;
 			valid_pos.j = j - 1;
 			maze[i][j - 1] == '.';
 			valid_positions.push(valid_pos);
 		}
-		std::cout << "Hello2" << std::endl;
-		if (i + 1 < num_rows  && (maze[i + 1][j] == 'x' || maze[i + 1][j] == 's'))
+
+		if (i + 1 < num_rows && (maze[i + 1][j] == 'x' || maze[i + 1][j] == 's'))
 		{
-			std::cout << "i+ " << maze[i + 1][j] << std::endl;
 			pos_t valid_pos;
 			valid_pos.i = i + 1;
 			valid_pos.j = j;
 			maze[i + 1][j] == '.';
 			valid_positions.push(valid_pos);
 		}
-		std::cout << "Hello3" << std::endl;
-		if ( i - 1 > -1 && (maze[i - 1][j] == 'x' || maze[i - 1][j] == 's'))
+
+		if (i - 1 > -1 && (maze[i - 1][j] == 'x' || maze[i - 1][j] == 's'))
 		{
-			std::cout << "i-1 " << i-1 << " j " << j << " valor " << maze[i - 1][j] << std::endl;
 			pos_t valid_pos;
 			valid_pos.i = i - 1;
 			valid_pos.j = j;
@@ -142,20 +140,38 @@ bool walk(pos_t pos)
 			valid_positions.push(valid_pos);
 		}
 
-		std::cout << "Tamanho valid " << valid_positions.size() << std::endl;
+		if (!valid_positions.empty())
+		{
+			maze[current_pos.i][current_pos.j] = '.';
+			current_pos.j = valid_positions.top().j;
+			current_pos.i = valid_positions.top().i;
+			if (maze[current_pos.i][current_pos.j] == '.')
+			{
+				valid_positions.pop();
+			}
+			else
+			{
+				if (maze[current_pos.i][current_pos.j] == 's')
+				{
+					finalizado = 1;
+				}
+				maze[current_pos.i][current_pos.j] = 'o';
 
-		current_pos.i = valid_positions.top().i;
-		current_pos.j = valid_positions.top().j;
-		if (maze[current_pos.i][current_pos.j] == 's') {
-			finalizado += 1;
-			return true;
-		} 
-		maze[current_pos.i][current_pos.j] = '.';
-		std::cout << "i j valor" << current_pos.i << current_pos.j << maze[current_pos.i][current_pos.j] << std::endl;
-
-		valid_positions.pop();
-
+				system("clear||cls");
+				print_maze();
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				valid_positions.pop();
+			}
+		}
+		else
+		{
+			std::cout << "O labirinto não tem saída" << std::endl;
+			return false;
+		}
 	}
+
+	
+	return true;
 	// Repita até que a saída seja encontrada ou não existam mais posições não exploradas
 	// Marcar a posição atual com o símbolo '.'
 	// Limpa a tela
@@ -175,23 +191,18 @@ bool walk(pos_t pos)
 	// Verifica se a pilha de posições nao esta vazia
 	// Caso não esteja, pegar o primeiro valor de  valid_positions, remove-lo e chamar a funçao walk com esse valor
 	// Caso contrario, retornar falso
-	if (!valid_positions.empty())
-	{
-		pos_t next_position = valid_positions.top();
-		valid_positions.pop();
-	}
-	return false;
 }
 
 int main(int argc, char *argv[])
 {
 	// carregar o labirinto com o nome do arquivo recebido como argumento
-	pos_t initial_pos = load_maze("../data/maze3.txt");
+	pos_t initial_pos = load_maze("../data/maze5.txt");
 	std::cout << "Posição inicial i:  " << initial_pos.i << " j: " << initial_pos.j << std::endl;
 	// chamar a função de navegação
 	bool exit_found = walk(initial_pos);
 
+	// print_maze();
 	// Tratar o retorno (imprimir mensagem)
-	print_maze();
+
 	return 0;
 }
