@@ -4,6 +4,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <atomic>
 
 // Matriz de char representnado o labirinto
 char **maze; // Voce também pode representar o labirinto como um vetor de vetores de char (vector<vector<char>>)
@@ -11,7 +12,7 @@ char **maze; // Voce também pode representar o labirinto como um vetor de vetor
 // Numero de linhas e colunas do labirinto
 int num_rows;
 int num_cols;
-
+bool finalizado;
 // Representação de uma posição
 struct pos_t
 {
@@ -97,9 +98,9 @@ bool walk(pos_t pos)
 	pos_t current_pos;
 	current_pos.j = pos.j;
 	current_pos.i = pos.i;
-	int finalizado = 0;
+	finalizado = false;
 
-	while (finalizado != 1)
+	while (!finalizado)
 	{
 		int i = current_pos.i;
 		int j = current_pos.j;
@@ -143,34 +144,34 @@ bool walk(pos_t pos)
 		if (!valid_positions.empty())
 		{
 			maze[current_pos.i][current_pos.j] = '.';
-			current_pos.j = valid_positions.top().j;
-			current_pos.i = valid_positions.top().i;
-			if (maze[current_pos.i][current_pos.j] == '.')
+			for (int i = 0; i < valid_positions.size(); i++)
 			{
-				valid_positions.pop();
-			}
-			else
-			{
-				if (maze[current_pos.i][current_pos.j] == 's')
+				current_pos.j = valid_positions.top().j;
+				current_pos.i = valid_positions.top().i;
+				if (maze[current_pos.i][current_pos.j] == '.')
 				{
-					finalizado = 1;
+					valid_positions.pop();
 				}
-				maze[current_pos.i][current_pos.j] = 'o';
+				else
+				{
+					if (maze[current_pos.i][current_pos.j] == 's')
+					{
+						finalizado = true;
+					}
+					maze[current_pos.i][current_pos.j] = 'o';
 
-				system("clear||cls");
-				print_maze();
-				std::this_thread::sleep_for(std::chrono::milliseconds(100));
-				valid_positions.pop();
+					std::this_thread::sleep_for(std::chrono::milliseconds(100));
+					valid_positions.pop();
+				}
+				if (valid_positions.size() > 1)
+				{
+					std::thread t(walk, current_pos);
+					t.detach();
+				}
 			}
-		}
-		else
-		{
-			std::cout << "O labirinto não tem saída" << std::endl;
-			return false;
 		}
 	}
 
-	
 	return true;
 	// Repita até que a saída seja encontrada ou não existam mais posições não exploradas
 	// Marcar a posição atual com o símbolo '.'
@@ -199,8 +200,15 @@ int main(int argc, char *argv[])
 	pos_t initial_pos = load_maze("../data/maze5.txt");
 	std::cout << "Posição inicial i:  " << initial_pos.i << " j: " << initial_pos.j << std::endl;
 	// chamar a função de navegação
-	bool exit_found = walk(initial_pos);
+	std::thread walk_thread(walk, initial_pos);
+	walk_thread.detach();
 
+	while (!finalizado)
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		system("clear||cls");
+		print_maze();
+	}
 	// print_maze();
 	// Tratar o retorno (imprimir mensagem)
 
